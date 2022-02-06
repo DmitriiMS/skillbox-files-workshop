@@ -7,6 +7,7 @@ public class Node {
     private File folder;
     private ArrayList<Node> children;
     private long size;
+    private int level;
 
 
     public Node(File folder) {
@@ -19,6 +20,7 @@ public class Node {
     }
 
     public void addChild(Node node) {
+        node.setLevel(level + 1);
         children.add(node);
     }
 
@@ -34,12 +36,22 @@ public class Node {
         this.size = size;
     }
 
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
+    }
+
     @Override
     public String toString() {
         String size = SizeCalculator.getHumanReadableSize(getSize());
-
-        return size;
+        StringBuilder builder = new StringBuilder();
+        builder.append(folder.getName()).append(" - ").append(size).append("\n");
+        for(Node child : children) {
+            builder.append("  ".repeat(level)).append(child.toString());
+        }
+        return builder.toString();
     }
-
-
 }
