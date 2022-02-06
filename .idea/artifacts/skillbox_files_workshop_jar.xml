@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" build-on-make="true" name="skillbox-files-workshop:jar">
+    <output-path>$PROJECT_DIR$/out/</output-path>
+    <root id="archive" name="skillbox-files-workshop.jar">
+      <element id="module-output" name="skillbox-files-workshop" />
+    </root>
+  </artifact>
+</component>
