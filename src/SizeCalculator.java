@@ -4,7 +4,13 @@ import java.util.Map;
 
 public class SizeCalculator {
     private static final String[] LETTERS = new String[]{"T", "G", "M", "K"};
-    private static Map<String, Long> multipliers = getMultipliers();
+    private static final Map<String, Long> MULTIPLIERS = new HashMap<>();
+    static {
+        MULTIPLIERS.put("T", 1099511627776L);
+        MULTIPLIERS.put("G", 1073741824L);
+        MULTIPLIERS.put("M", 1048576L);
+        MULTIPLIERS.put("K", 1024L);
+    }
 
     public static long getFolderSize(File folder){
         if(folder.isFile()) {
@@ -22,8 +28,8 @@ public class SizeCalculator {
 
     public static String getHumanReadableSize(long size) {
         for(String letter : LETTERS){
-            if (size >= multipliers.get(letter)) {
-                return (int) (Math.round((double) size / multipliers.get(letter))) + letter;
+            if (size >= MULTIPLIERS.get(letter)) {
+                return (int) (Math.round((double) size / MULTIPLIERS.get(letter))) + letter;
             }
         }
         return size + "B";
@@ -32,18 +38,9 @@ public class SizeCalculator {
     public static long getSizeFromHumanReadable (String size) {
         for(String letter : LETTERS) {
             if(size.contains(letter)){
-                return Long.parseLong(size.replaceAll("[^0-9]", "")) * multipliers.get(letter);
+                return Long.parseLong(size.replaceAll("[^0-9]", "")) * MULTIPLIERS.get(letter);
             }
         }
         return Long.parseLong(size.replaceAll("[^0-9]", ""));
-    }
-
-    private static Map<String, Long> getMultipliers(){
-        return new HashMap<String, Long>(){{
-            put("T", 1099511627776L);
-            put("G", 1073741824L);
-            put("M", 1048576L);
-            put("K", 1024L);
-        }};
     }
 }

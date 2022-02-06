@@ -1,12 +1,11 @@
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Node {
     private File folder;
     private ArrayList<Node> children;
     private long size;
+    private long limit;
     private int level;
 
 
@@ -15,12 +14,18 @@ public class Node {
         children = new ArrayList<>();
     }
 
+    public Node(File folder, long limit) {
+        this(folder);
+        this.limit = limit;
+    }
+
     public File getFolder() {
         return folder;
     }
 
     public void addChild(Node node) {
         node.setLevel(level + 1);
+        node.setLimit(limit);
         children.add(node);
     }
 
@@ -36,12 +41,16 @@ public class Node {
         this.size = size;
     }
 
-    public int getLevel() {
-        return level;
+    private void setLevel(int level) {
+        this.level = level;
     }
 
-    public void setLevel(int level) {
-        this.level = level;
+    public long getLimit() {
+        return limit;
+    }
+
+    public void setLimit(long limit) {
+        this.limit = limit;
     }
 
     @Override
@@ -50,7 +59,10 @@ public class Node {
         StringBuilder builder = new StringBuilder();
         builder.append(folder.getName()).append(" - ").append(size).append("\n");
         for(Node child : children) {
-            builder.append("  ".repeat(level)).append(child.toString());
+            if (child.getSize() < limit){
+                continue;
+            }
+            builder.append("  ".repeat(level + 1)).append(child.toString());
         }
         return builder.toString();
     }
