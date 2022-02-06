@@ -1,12 +1,14 @@
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ForkJoinPool;
 
 public class Main {
+    public static final String[] LETTERS = new String[]{"T", "G", "M", "K"};
+
     public static void main(String[] args) {
         String folderPath = "/tmp/";
         File folder = new File(folderPath);
-
-
         long start = System.nanoTime();
         FolderSizeCalculator calculator = new FolderSizeCalculator(folder);
         ForkJoinPool pool = new ForkJoinPool();
@@ -34,30 +36,31 @@ public class Main {
     }
 
     public static String getHumanReadableSize(long size) {
-        final long TB = 1099511627776L;
-        final long GB = 1073741824L;
-        final long MB = 1048576L;
-        final long KB = 1024L;
-        if(size >= TB) { return (int) (Math.round((double) size / TB)) + "T"; }
-        if(size >= GB) { return (int) (Math.round((double) size / GB)) + "G"; }
-        if(size >= MB) { return (int) (Math.round((double) size / MB)) + "M"; }
-        if(size >= KB) { return (int) (Math.round((double) size / KB)) + "K"; }
+        Map<String, Long> multipliers = getMultipliers();
+        for(String letter : LETTERS){
+            if (size >= multipliers.get(letter)) {
+                return (int) (Math.round((double) size / multipliers.get(letter))) + letter;
+            }
+        }
         return size + "B";
     }
 
     public static long getSizeFromHumanReadable (String size) {
-        long digits = Long.parseLong(size.substring(0, size.length() - 1));
-        switch (size.toCharArray()[size.length() - 1]) {
-            case 'K':
-                return digits * 1024;
-            case 'M':
-                return digits * 1024 * 1024;
-            case 'G':
-                return digits * 1024 * 1024 * 1024;
-            case 'T':
-                return digits * 1024 * 1024 * 1024 * 1024;
-            default:
-                return digits;
+        Map<String, Long> multipliers = getMultipliers();
+        for(String letter : LETTERS) {
+            if(size.contains(letter)){
+                return Long.parseLong(size.replaceAll("[^0-9]", "")) * multipliers.get(letter);
+            }
         }
+        return Long.parseLong(size.replaceAll("[^0-9]", ""));
+    }
+
+    public static Map<String, Long> getMultipliers(){
+        return new HashMap<String, Long>(){{
+            put("T", 1099511627776L);
+            put("G", 1073741824L);
+            put("M", 1048576L);
+            put("K", 1024L);
+        }};
     }
 }
