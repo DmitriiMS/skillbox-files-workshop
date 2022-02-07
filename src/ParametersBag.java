@@ -1,51 +1,59 @@
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public class ParametersBag {
     private long limit;
     private String path;
 
     public ParametersBag(String args[]) throws IllegalArgumentException, FileNotFoundException, ArrayIndexOutOfBoundsException {
+        String errorMessage = "всё сломалось";
+        String helpMessage = "\nПример правильного использования флагов\n" +
+                "java -jar skillbox-files-workshop.jar -d /path/to/dir/ -l 100M\n" +
+                "или\n" +
+                "java -jar skillbox-files-workshop.jar -l 1G -d C:\\path\\to\\dir\\\n" +
+                "Лимит задаётся с указанием множителя: K, M, G или T\n";
+
         if (args.length < 2 || args.length > 4) {
             throw new IllegalArgumentException("Неправильное количество параметров.\n" +
-                    "Как минимум надо указать путь к файлу или папке.");
+                    "Как минимум надо указать путь к файлу или папке." + helpMessage);
         }
 
-        int hasPath = contains(args, "-d");
-        int hasLimit = contains(args, "-l");
-        if(hasPath == -1 && hasLimit == -1) {
-            throw new IllegalArgumentException("Неправильное использование флагов.\n" +
-                    "-d -- для указания пути к папке/файлу\n" +
-                    "-l -- для указания лимита.");
-        } else if (hasPath != -1){
-            try {
-                File f = new File(args[hasPath + 1]);
-                if(!f.exists()) {
-                    throw new FileNotFoundException("Нет файла или папки с указаным именем.");
+        try {
+            for(int i = 0; i < args.length; i += 2){
+                if(args[i].equals("-d")){
+                    errorMessage = "Не достаточно параметров: после флага -d не указан путь к файлу." + helpMessage;
+                    File f = new File(args[i + 1]);
+                    if(!f.exists()) {
+                        throw new FileNotFoundException("Нет файла или папки с указаным именем: \"" +
+                                args[i + 1] + "\"" + helpMessage);
+                    }
+                    path = args[i + 1];
+                    continue;
                 }
-                path = args[hasPath + 1];
-            } catch (ArrayIndexOutOfBoundsException aioofbe) {
-                throw new ArrayIndexOutOfBoundsException("Не достаточно параметров: не указан путь к файлу.");
-            }
-            if(hasLimit != -1) {
-                try {
-                    long humanReadableLimit = SizeCalculator.getSizeFromHumanReadable(args[hasLimit + 1]);
+                if(args[i].equals("-l")) {
+                    errorMessage = "Не достаточно параметров: после флага -l не указан размер лимита." + helpMessage;
+                    Pattern pat = Pattern.compile("\\d+[TGMK]");
+                    Matcher mat = pat.matcher(args[i + 1]);
+                    if(!mat.matches()) {
+                        throw new IllegalArgumentException(errorMessage);
+                    }
+                    long humanReadableLimit = SizeCalculator.getSizeFromHumanReadable(args[i + 1]);
                     if (humanReadableLimit < 0) {
-                        throw new IllegalArgumentException("Лимит должен быть больше 0.");
+                        throw new IllegalArgumentException("Лимит должен быть больше 0." + helpMessage);
                     }
                     limit = humanReadableLimit;
-                } catch (ArrayIndexOutOfBoundsException aioofbe) {
-                    throw new ArrayIndexOutOfBoundsException("Не достаточно параметров: не указан лимит.");
+                    continue;
                 }
-            }
+                throw new IllegalArgumentException("Неправильное использование флагов.\n" +
+                        "-d -- для указания пути к папке/файлу\n" +
+                        "-l -- для указания лимита." + helpMessage);
+        }
+        }catch (ArrayIndexOutOfBoundsException aioofbe) {
+            throw new ArrayIndexOutOfBoundsException(errorMessage);
         }
 
-    }
-
-    private int contains(String args[], String arg){
-        for(int i = 0; i < args.length; i++){
-            if (args[i].equals(arg)) { return i; }
-        }
-        return -1;
     }
 
     public long getLimit() {
